@@ -1,10 +1,12 @@
 import userSchema from "../schema/userSchema.js";
-import User from "../Models/User.js";
+import User from "../Models/User.js"; 
+import chalk from "chalk";
 
+//get All users
 const getAllUsers = async(req, res) => {
  
   try {
-     const userCollection  =  await User.findBy()
+     const userCollection  =  await User.find()
      res.status(200).json({
       message: "All user fetched successfully",
       users: userCollection,
@@ -17,68 +19,96 @@ const getAllUsers = async(req, res) => {
   }
 };
 
+
+// Create a user
 const createUser = async (req, res) => {
-  try {
-    const user = await userSchema.validateAsync(req.body);
-    const newUser = await new User(user);
+	try {
+		const user = await userSchema.validateAsync(req.body);
+		const newUser = new User(user);
 
-    await newUser.save()
+		await newUser.save();
 
-    res.status(201).json({
-      message: "User created successfully",
-      User: newUser,
-    });
-    console.log(value);
-  } catch (error) {
-    res.status(500).json({
-      error: error,
-    });
-  }
+		res.status(201).json({
+			message: 'User created successfully',
+			user: newUser,
+		});
+	} catch (error) {
+		if (error?.code === 11000) {
+			return res.status(409).json({
+				message: 'Duplicate email - Email already exists',
+				error: error.message,
+			});
+		}
+
+		res.status(500).json({
+			message: 'Internal Server Error',
+			error: error.message,
+		});
+	}
 };
 
-const deleteUser = (req, res) => {
+const deleteUser = async(req, res) => {
   try {
-    const { id } = req.params;
+		const { id } = req.params;
 
-    let index = users.findIndex((user) => user.id == id);
-    users.splice(index, 1);
-
-    res.send({
-      deletedId: id,
-      message: "user deleted successfully",
-    });
-  } catch (error) {
-    console.log(error);
-  }
+		const deletedUser = await  User.findOneAndDelete(id);
+		if (!deletedUser) {
+			return res.status(404).json({ message: 'User not found' });
+    }
+    console.log(chalk.bgMagentaBright(deleteUser))
+		res.send({
+			deletedId: { id, deletedUser },
+			message: 'user deleted successfully',
+		});
+	} catch (error) {
+		console.log(chalk.bgRed.white(error));
+		res.status(500).json({ message: 'Internal server error', error });
+	}
 };
 
-const updateUser = (req, res) => {
+
+//Update a User
+const updateUser = async(req, res) => {
   try {
-    const { id } = req.params;
+		const { id } = req.params;
 
-    let index = users.findIndex((user) => user.id == id);
-    users.splice(index, 1, { ...req.body, id: id });
+		const updatedUser = await User.findOneAndUpdate({ _id: id }, { ...req.body }, { new: true });
+		if (!updateUser) {
+			res.status(404).json({
+				message: 'user not found',
+			});
+		}
 
-    res.send({
-      updatedUser: id,
-      message: "user updated successfully",
-    });
-  } catch (error) {
-    console.log(error);
-  }
+		res.send({
+			updatedUser: { id, updatedUser },
+			message: 'user updated successfully',
+		});
+	} catch (error) {
+		console.log(chalk.bgRed.white(error));
+		res.status(500).json({ message: 'Internal server error', error });
+	}
 };
-const getUser = (req, res) => {
-  try {
-    const { id } = req.params;
-    let foundUser = users.find((obj) => obj.id == id);
 
-    res.send({
-      user: foundUser,
-      message: "user found successfully",
-    });
-  } catch (error) {
-    console.log(error);
-  }
+
+//  get a specific user
+const getUser = async(req, res) => {
+  try {
+		const { id } = req.params;
+		const userFound = await User.findOne({_id:id});
+		if (!userFound) {
+			res.status(400).json({
+				message: 'user not found',
+			});
+		}
+
+		res.send({
+			user: userFound,
+			message: 'user found successfully',
+		});
+	} catch (error) {
+		console.log(chalk.bgRed.white(error));
+		res.status(500).json({ message: 'Internal server error', error });
+	}
 };
 
 export { getAllUsers, updateUser, deleteUser, getUser, createUser };
