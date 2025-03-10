@@ -3,7 +3,7 @@ import User from "../Models/User.js";
 import chalk from "chalk";
 
 //get All users
-const getAllUsers = async(req, res) => {
+export const getAllUsers = async(req, res) => {
  
   try {
      const userCollection  =  await User.find()
@@ -21,7 +21,8 @@ const getAllUsers = async(req, res) => {
 
 
 // Create a user
-const createUser = async (req, res) => {
+export const signup = async (req, res) => {
+	console.log(chalk.bgCyan("incoming call to signup api"))
 	try {
 		const user = await userSchema.validateAsync(req.body);
 		const newUser = new User(user);
@@ -47,7 +48,7 @@ const createUser = async (req, res) => {
 	}
 };
 
-const deleteUser = async(req, res) => {
+export const deleteUser = async(req, res) => {
   try {
 		const { id } = req.params;
 
@@ -68,7 +69,7 @@ const deleteUser = async(req, res) => {
 
 
 //Update a User
-const updateUser = async(req, res) => {
+export const updateUser = async(req, res) => {
   try {
 		const { id } = req.params;
 
@@ -91,19 +92,26 @@ const updateUser = async(req, res) => {
 
 
 //  get a specific user
-const getUser = async(req, res) => {
-  try {
-		const { id } = req.params;
-		const userFound = await User.findOne({_id:id});
-		if (!userFound) {
-			res.status(400).json({
-				message: 'user not found',
-			});
+export const login = async(req, res) => {
+	try {
+	     console.log('🚀 Incoming Login Request:', req.body);
+
+				// Validate Request Data
+				if (!req.body.email || !req.body.password) {
+					console.error('❌ Missing email or password in request');
+					return res.status(400).json({ success: false, message: 'Email and password are required' });
+				}
+
+		const user = await User.findOne({email:req.body.email});
+		if (!user) {
+			 console.error('❌ User not found with email:', req.body.email);
+				return res.status(400).json({ success: false, message: 'Invalid credentials' });
 		}
 
-		res.send({
-			user: userFound,
-			message: 'user found successfully',
+		res.status(200).json({
+			success: true,
+			message: 'User signed in',
+			user: { id: user.id},
 		});
 	} catch (error) {
 		console.log(chalk.bgRed.white(error));
@@ -111,4 +119,3 @@ const getUser = async(req, res) => {
 	}
 };
 
-export { getAllUsers, updateUser, deleteUser, getUser, createUser };

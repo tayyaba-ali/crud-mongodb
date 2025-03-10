@@ -17,7 +17,9 @@ connectToDb()
 // app.get("/",(req,res)=>{
 //   res.send("server is active")
 // })
-app.use("/api", userRoutes);
+app.use("/api/auth", userRoutes);
+
+// app.use('/api/products', productRoutes);
 
 app.listen(5000, () => {
   console.log("server is listening 5000");

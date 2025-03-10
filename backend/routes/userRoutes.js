@@ -4,13 +4,13 @@ import {
   getAllUsers,
   updateUser,
   deleteUser,
-  getUser,
-  createUser,
+  login,
+  signup,
 } from "../controllers/userController.js";
 
 router.get("/users",getAllUsers);
-router.post("/user",createUser);
-router.get("/user/:id",getUser);
+router.post("/signup",signup);
+router.post("/login",login);
 router.delete("/user/:id",deleteUser)
 router.put("/user/:id",updateUser)
 
